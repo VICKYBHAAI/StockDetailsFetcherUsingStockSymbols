@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -20,7 +19,7 @@ import org.json.JSONException
 
 class MainActivity : AppCompatActivity() {
     private lateinit var stockPriceTextView: TextView
-    private lateinit var exchangeTextView: TextView
+    private lateinit var percentageChangeTextView: TextView
     private lateinit var companyTextView: TextView
     private lateinit var symbol: EditText
     private lateinit var updateButton: Button
@@ -38,7 +37,7 @@ class MainActivity : AppCompatActivity() {
 
         // Match the IDs from XML file
         stockPriceTextView = findViewById(R.id.stockPriceTextView)
-        exchangeTextView = findViewById(R.id.exchangeTextView)
+        percentageChangeTextView = findViewById(R.id.percentageChangeTextView)
         companyTextView = findViewById(R.id.companyTextView)
         updateButton = findViewById(R.id.updateButton)
         symbol = findViewById(R.id.symbolName)
@@ -68,7 +67,7 @@ class MainActivity : AppCompatActivity() {
                     val stockData = timeSeries.getJSONObject(latestTime)
                     val stockPrice = stockData.getString("1. open")
 
-                    // After fetching stock price, fetch company details
+                    // Fetch company details after fetching stock price
                     fetchCompanyDetails(symbolString, stockPrice.toDouble())
                 } catch (e: JSONException) {
                     e.printStackTrace()
@@ -97,10 +96,9 @@ class MainActivity : AppCompatActivity() {
                 try {
                     Log.d("COMPANY_RESPONSE", response.toString())
                     val companyName = response.getString("Name")
-                    val exchange = response.getString("Exchange")
 
-                    // Update UI with stock price, exchange, and company name
-                    updateStockDetails(stockPrice, exchange, companyName)
+                    // Update UI with stock price, percentage change, and company name
+                    updateStockDetails(stockPrice, companyName)
                 } catch (e: JSONException) {
                     e.printStackTrace()
                     Toast.makeText(this, "Error parsing company details response", Toast.LENGTH_SHORT).show()
@@ -121,17 +119,26 @@ class MainActivity : AppCompatActivity() {
         requestQueue!!.add(request)
     }
 
-    private fun updateStockDetails(currentPrice: Double, exchange: String, company: String) {
+    private fun updateStockDetails(currentPrice: Double, companyName: String) {
+        // Calculate the price change and percentage change
         val priceChange = currentPrice - previousPrice
+        val percentageChange = if (previousPrice != 0.0) {
+            (priceChange / previousPrice) * 100
+        } else {
+            0.0
+        }
         previousPrice = currentPrice
 
         handler.post {
             startBlinkAnimation(stockPriceTextView)
             val formattedPrice = String.format("%.2f", currentPrice)
+            val formattedPercentageChange = String.format("%.2f", percentageChange)
+
+            // Update the stock price, percentage change, and company name
             stockPriceTextView.text = formattedPrice
             stockPriceTextView.setTextColor(if (priceChange >= 0) Color.GREEN else Color.RED)
-            exchangeTextView.text = "Exchange: $exchange"
-            companyTextView.text = "Company Name: $company"
+            percentageChangeTextView.text = "Percentage Change: $formattedPercentageChange%"
+            companyTextView.text = "Company Name: $companyName"
         }
     }
 
