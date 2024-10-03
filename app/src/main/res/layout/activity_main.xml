@@ -63,11 +63,11 @@
 
             <!-- TextView for stock exchange -->
             <TextView
-                android:id="@+id/exchangeTextView"
+                android:id="@+id/percentageChangeTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="10dp"
-                android:text="Exchange: "
+                android:text="Percentage Change: "
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold"/>
